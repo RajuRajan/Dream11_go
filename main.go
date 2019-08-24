@@ -17,9 +17,23 @@ var err error
 type Users struct {
 	gorm.Model
 
-	Name     string
-	Password string
-	Email    string
+	Name             string
+	Password         string
+	Email            string
+	StateOfResidence string
+	Gender           string
+}
+
+type Matchbetted struct {
+	gorm.Model
+
+	Bettedmatch string
+	Userid      string
+}
+
+type Match struct {
+	Userid string
+	Match  string
 }
 
 func InitialMigration() {
@@ -33,6 +47,8 @@ func InitialMigration() {
 	}
 	defer db.Close()
 	db.AutoMigrate(&Users{})
+	db.AutoMigrate(&Matchbetted{})
+	db.AutoMigrate(&Match{})
 }
 
 func helloworld(w http.ResponseWriter, r *http.Request) {
@@ -50,6 +66,14 @@ func handleRequests() {
 	myRouter.HandleFunc("/mail/{email}/{rand}", mail).Methods("POST")
 	myRouter.HandleFunc("/UpdatePassword/{email}/{password}", PasswordChange).Methods("POST")
 	myRouter.HandleFunc("/otp/{otp}/{number}", otpVerify).Methods("POST")
+	myRouter.HandleFunc("/betted", bettedMatches).Methods("POST")
+	myRouter.HandleFunc("/getbetted/{id}", getbettedMatches).Methods("POST")
+	myRouter.HandleFunc("/match", match).Methods("POST")
+
+	myRouter.HandleFunc("/getUserDetail/{id}", getUserDetail).Methods("POST")
+	myRouter.HandleFunc("/update/{id}", updateuser).Methods("POST")
+	myRouter.HandleFunc("/adminUserDetail", adminUserDetail).Methods("POST")
+
 	log.Fatal(http.ListenAndServe(":8100", cors.Default().Handler(myRouter)))
 }
 

@@ -36,6 +36,7 @@ func signupByGoogle(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(w, "New user created successfully")
 	fmt.Fprintf(w, "New user created successfully")
+	welcomeMail(email)
 
 }
 
@@ -284,4 +285,154 @@ func (r *Request) ParseTemplate(templateFileName string, data interface{}) error
 	}
 	r.body = buf.String()
 	return nil
+}
+
+func bettedMatches(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+
+	db, err = gorm.Open("postgres", "port=5432 user=postgres dbname=dream password=root sslmode=disable")
+	if err != nil {
+		panic("Failed to connect")
+	} else {
+		fmt.Println("Connection Successfull")
+	}
+
+	var u Matchbetted
+	if r.Body == nil {
+		http.Error(w, "Please send a request body", 400)
+		return
+	}
+	err := json.NewDecoder(r.Body).Decode(&u)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	db.Create(&Matchbetted{Userid: u.Userid, Bettedmatch: u.Bettedmatch})
+}
+
+func getbettedMatches(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+
+	db, err = gorm.Open("postgres", "port=5432 user=postgres dbname=dream password=root sslmode=disable")
+	if err != nil {
+		panic("Failed to connect")
+	} else {
+		fmt.Println("Connection Successfull")
+	}
+
+	vars := mux.Vars(r)
+	var match []Matchbetted
+
+	id := vars["id"]
+	db.Model(&match).Where("Userid=?", id).Find(&match)
+	json.NewEncoder(w).Encode(match)
+
+}
+
+func match(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+
+	db, err = gorm.Open("postgres", "port=5432 user=postgres dbname=dream password=root sslmode=disable")
+	if err != nil {
+		panic("Failed to connect")
+	} else {
+		fmt.Println("Connection Successfull")
+	}
+
+	var u Match
+	if r.Body == nil {
+		http.Error(w, "Please send a request body", 400)
+		return
+	}
+	err := json.NewDecoder(r.Body).Decode(&u)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+	fmt.Println(u.Userid)
+	fmt.Println(u.Match)
+	if err := db.Where("Userid = ?", u.Userid).First(&u).Error; gorm.IsRecordNotFoundError(err) {
+		db.Create(&Match{Userid: u.Userid, Match: u.Match})
+		json.NewEncoder(w).Encode(u)
+
+	} else {
+		db.Model(&u).Where("Userid=?", u.Userid).Update(&Match{Match: u.Match})
+		fmt.Println("update")
+		json.NewEncoder(w).Encode(u)
+
+	}
+}
+
+func getUserDetail(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+	db, err = gorm.Open("postgres", "port=5432 user=postgres dbname=dream password=root sslmode=disable")
+	if err != nil {
+		panic("Failed to connect")
+	} else {
+		fmt.Println("Connection Successfull")
+	}
+
+	vars := mux.Vars(r)
+	var user Users
+
+	id := vars["id"]
+	db.Model(&user).Where("Id=?", id).Find(&user)
+	json.NewEncoder(w).Encode(user)
+
+}
+
+func updateuser(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+	db, err = gorm.Open("postgres", "port=5432 user=postgres dbname=dream password=root sslmode=disable")
+	if err != nil {
+		panic("Failed to connect")
+	} else {
+		fmt.Println("Connection Successfull update")
+	}
+
+	var u Users
+	if r.Body == nil {
+		http.Error(w, "Please send a request body", 400)
+		return
+	}
+	err := json.NewDecoder(r.Body).Decode(&u)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	vars := mux.Vars(r)
+	var user Users
+
+	id := vars["id"]
+	db.Model(&user).Where("Id=?", id).Updates(&Users{Name: u.Name, Gender: u.Gender, Password: u.Password, StateOfResidence: u.StateOfResidence})
+	json.NewEncoder(w).Encode(user)
+
+}
+
+func adminUserDetail(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+
+	db, err = gorm.Open("postgres", "port=5432 user=postgres dbname=dream password=root sslmode=disable")
+	if err != nil {
+		panic("Failed to connect")
+	} else {
+		fmt.Println("Connection Successfull")
+	}
+
+	var user []Users
+
+	db.Find(&user)
+	json.NewEncoder(w).Encode(user)
 }
