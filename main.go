@@ -36,6 +36,13 @@ type Match struct {
 	Match  string
 }
 
+type Score struct {
+	Over       string
+	Wicket     string
+	Score      string
+	Tournament string
+}
+
 func InitialMigration() {
 
 	db, err = gorm.Open("postgres", "port=5432 user=postgres dbname=dream password=root sslmode=disable")
@@ -49,6 +56,7 @@ func InitialMigration() {
 	db.AutoMigrate(&Users{})
 	db.AutoMigrate(&Matchbetted{})
 	db.AutoMigrate(&Match{})
+	db.AutoMigrate(&Score{})
 }
 
 func helloworld(w http.ResponseWriter, r *http.Request) {
@@ -73,6 +81,8 @@ func handleRequests() {
 	myRouter.HandleFunc("/getUserDetail/{id}", getUserDetail).Methods("POST")
 	myRouter.HandleFunc("/update/{id}", updateuser).Methods("POST")
 	myRouter.HandleFunc("/adminUserDetail", adminUserDetail).Methods("POST")
+	myRouter.HandleFunc("/scoreUpdate/{tournament}/{score}/{wicket}/{over}", scoreUpdate).Methods("POST")
+	myRouter.HandleFunc("/refreshscore/{tournament}", refreshscore).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8100", cors.Default().Handler(myRouter)))
 }

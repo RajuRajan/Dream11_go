@@ -436,3 +436,58 @@ func adminUserDetail(w http.ResponseWriter, r *http.Request) {
 	db.Find(&user)
 	json.NewEncoder(w).Encode(user)
 }
+
+func scoreUpdate(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+
+	db, err = gorm.Open("postgres", "port=5432 user=postgres dbname=dream password=root sslmode=disable")
+	if err != nil {
+		panic("Failed to connect")
+	} else {
+		fmt.Println("Connection Successfull")
+	}
+
+	var score Score
+	vars := mux.Vars(r)
+
+	scores := vars["score"]
+	wicket := vars["wicket"]
+	over := vars["over"]
+	tournament := vars["tournament"]
+
+	if err := db.Where("Tournament=?", tournament).First(&score).Error; gorm.IsRecordNotFoundError(err) {
+		db.Create(&Score{Score: scores, Wicket: wicket, Over: over, Tournament: tournament})
+		json.NewEncoder(w).Encode(score)
+
+	} else {
+		db.Model(&score).Where("Tournament=?", tournament).Update((&Score{Score: scores, Wicket: wicket, Over: over}))
+
+		json.NewEncoder(w).Encode(score)
+
+	}
+
+	json.NewEncoder(w).Encode(score)
+
+}
+
+func refreshscore(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+
+	db, err = gorm.Open("postgres", "port=5432 user=postgres dbname=dream password=root sslmode=disable")
+	if err != nil {
+		panic("Failed to connect")
+	} else {
+		fmt.Println("Connection Successfull")
+	}
+
+	var score Score
+	vars := mux.Vars(r)
+
+	tournament := vars["tournament"]
+
+	db.Model(&score).Where("Tournament=?", tournament).Find(&score)
+	json.NewEncoder(w).Encode(score)
+
+}
